@@ -9,8 +9,30 @@
     <string name="acelerometro">Acelerometro</string>
 
     <string name="demo">Demo</string>
-    <string name="cinco">Gps1 Corrente1</string>
-    <string name="gps">Gps2 Corrente2</string>
-    <string name="current">Gps3 Corrente3</string>
-    <string name="agressivo">Gps4 Corrente4</string>
+    <string name="bt">Bluetooth</string>
+
+    <string name="scanning">Procurando Bluetooth...</string>
+    <string name="select_device">Escolha um veículo</string>
+    <string name="blank"> </string>
+    <string name="select">Selecione um veículo para conectar</string>
+    <string name="none_found">Veículo não encontrado. Tente novamente.</string>
+
+    <string name="title_paired_devices">Dispositivos pareados</string>
+
+    <string name="title_other_devices">Veículos disponíveis:</string>
+    <string name="button_scan">Procurar</string>
+    <string name="button_send_pass">Conectar</string>
+
+    <string name="button_search_car">Procurar veículo</string>
+
+    <string name="select_network">Escolha uma rede Wi-Fi</string>
+    <string name="available_network">Redes disponíveis:</string>
+    <string name="search_network">Procurar redes</string>
+    <string name="searching_network">Procurando redes...</string>
+    <string name="insert_password">Insira a senha da rede</string>
+
+    <string name="connecting">Conectando</string>
+    <string name="waiting">Aguarde...</string>
+    <string name="configuring">Configurando veículo...</string>
+
 </resources>

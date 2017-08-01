@@ -23,31 +23,12 @@ import com.mobilis.bt_tabletgauge.ui.widgets.gauges.IBaseGpsListener;
 import com.mobilis.bt_tabletgauge.ui.widgets.gauges.IGauge;
 import com.mobilis.bt_tabletgauge.ui.widgets.gauges.IGaugeUI;
 
-/*
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.conn.ssl.X509HostnameVerifier;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.SingleClientConnManager;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject; */
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
 
 
 public class AccelGauge implements IGauge {
 
-    private static final int GAUGE_MODE_DEMO = 2;
-    private static final int GAUGE_MODE_CURRENT_AGRESSIVE = 1;
-    private static final int GAUGE_MODE_CURRENT_TEST = 0;
-   // private static final int GAUGE_MODE_GPS =1;
-   // private static final int GAUGE_MODE_ADDOFFSET = 0;
+    private static final int GAUGE_MODE_DEMO = 1;
+    private static final int GAUGE_MODE_BLUETOOTH = 0;
 
     private static final int gSpeed = 1;
     private static final int gBattery = 2;
@@ -55,17 +36,14 @@ public class AccelGauge implements IGauge {
 
     private static float OFFSET;
 
-    private final int MAX_GAUGE_VALUE = 50;
-    private final int MAX_GAUGE_VALUE_BATTERY = 100;
-    private final int MAX_GAUGE_VALUE_CURRENT = 300;
-    private final int MIN_GAUGE_VALUE_CURRENT = -200;
+    private static final int MAX_GAUGE_VALUE = 50;
+    private static final int MAX_GAUGE_VALUE_BATTERY = 100;
+    private static final int MAX_GAUGE_VALUE_CURRENT = 300;
+    private static final int MIN_GAUGE_VALUE_CURRENT = -200;
 
     private float nCORRENTE = 0;
 
-    private int nLOOP = 800;
-    private int maxLOOP = 1000;  /*para esperar 5 segundos para atualização*/
-
-    private IGaugeUI mIGaugeUI;
+    private static IGaugeUI mIGaugeUI;
     private Context mContext;
 
     private float[] mSpeedValues = new float[2];
@@ -79,10 +57,6 @@ public class AccelGauge implements IGauge {
     private boolean mDemoCurrentDecrement;
 
 
-    private CLocation mLocation;
-    private NetworkInfo wifiCheck;
-    
-
     public AccelGauge(IGaugeUI iGaugeUI, Context context) {
         mIGaugeUI = iGaugeUI;
         mContext = context;
@@ -90,7 +64,7 @@ public class AccelGauge implements IGauge {
     }
 
     private void init() {
-        mGaugeMode = GAUGE_MODE_CURRENT_TEST; //GAUGE_MODE_ADDOFFSET;
+        mGaugeMode = GAUGE_MODE_BLUETOOTH; //GAUGE_MODE_ADDOFFSET;
 
 
         mIGaugeUI.setIGauge(this);
@@ -99,13 +73,11 @@ public class AccelGauge implements IGauge {
 
         mSpeedValues[0] = 0;
         mSpeedValues[1] = 0;
-
-        updateGaugeBattery(82);
     }
 
     @Override
     public void onClick() {
-        mGaugeMode = mGaugeMode == GAUGE_MODE_DEMO ? GAUGE_MODE_CURRENT_TEST : ++mGaugeMode;
+        mGaugeMode = mGaugeMode == GAUGE_MODE_DEMO ? GAUGE_MODE_BLUETOOTH : GAUGE_MODE_DEMO;
         setDisplayMode();
     }
 
@@ -115,20 +87,10 @@ public class AccelGauge implements IGauge {
         mIGaugeUI.set7SegmentLabelSpeed(mContext.getResources().getString(R.string.m_per_second));
 
         switch (mGaugeMode) {
-         /*   case GAUGE_MODE_ADDOFFSET:
-                mIGaugeUI.setMajorLabel(mContext.getResources().getString(R.string.cinco));
-                break;
 
-            case GAUGE_MODE_GPS:
-                mIGaugeUI.setMajorLabel(mContext.getResources().getString(R.string.gps));
-                break;*/
 
-            case GAUGE_MODE_CURRENT_TEST:
-                mIGaugeUI.setMajorLabel(mContext.getResources().getString(R.string.current));
-                break;
-
-            case GAUGE_MODE_CURRENT_AGRESSIVE:
-                mIGaugeUI.setMajorLabel(mContext.getResources().getString(R.string.agressivo));
+            case GAUGE_MODE_BLUETOOTH:
+                mIGaugeUI.setMajorLabel(mContext.getResources().getString(R.string.bt));
                 break;
 
             case GAUGE_MODE_DEMO:
@@ -138,22 +100,23 @@ public class AccelGauge implements IGauge {
         updateGauge();
     }
 
-    private void updateGaugeSpeed(float value){
+    public static void updateGaugeSpeed(float value){
+      //  Log.i("UpdateGaugeSpeed", String.valueOf(value));
         updateDisplayValue(value, gSpeed);
         setGaugePointerValue(value, gSpeed);
     }
 
-    private void updateGaugeBattery(float value){
+    public static void updateGaugeBattery(float value){
         setGaugePointerValue(value, gBattery);
         updateDisplayValue(value, gBattery);
     }
 
-    private void updateGaugeCurrent(float value){
+    public static void updateGaugeCurrent(float value){
         setGaugePointerValue(value, gCurrent);
         updateDisplayValue(value, gCurrent);
     }
 
-    private void updateDisplayValue(float value, int gauge) {
+    private static void updateDisplayValue(float value, int gauge) {
         DecimalFormat df;
         String text;
 
@@ -181,7 +144,7 @@ public class AccelGauge implements IGauge {
         }
     }
 
-    private void setGaugePointerValue(float value, int gauge) {
+    private static void setGaugePointerValue(float value, int gauge) {
         switch (gauge) {
             case gSpeed:
                 if (value > MAX_GAUGE_VALUE) mIGaugeUI.setPointerSpeed(MAX_GAUGE_VALUE);
@@ -204,30 +167,10 @@ public class AccelGauge implements IGauge {
 
     private void updateGauge() {
 
-        if (nLOOP < maxLOOP)
-            nLOOP ++;
-        else{
-            nLOOP = 0;
-           // Log.i("---LOOP", "entrou");
-
-        }
-
         switch (mGaugeMode) {
 
-       /*     case GAUGE_MODE_ADDOFFSET:
-                addFiveGPSSpeed(mLocation);
-                break;
-
-            case GAUGE_MODE_GPS:
-                updateSpeedGPS(mLocation);
-                break;*/
-
-            case GAUGE_MODE_CURRENT_TEST:
-               // updateSpeedGPSandCurrent(mLocation);
-                break;
-
-            case GAUGE_MODE_CURRENT_AGRESSIVE:
-               // updateSpeedGPSandCurrentAgressive(mLocation);
+            case GAUGE_MODE_BLUETOOTH:
+                updateGaugeBluetooth();
                 break;
 
             case GAUGE_MODE_DEMO:
@@ -287,11 +230,16 @@ public class AccelGauge implements IGauge {
     }
 
 
+    private void updateGaugeBluetooth(){
+
+    }
+
+
     /** *********************** Funções Gauge UI ***************************/
     private void startTimerTask() {
         mGaugeTimerTask = new GaugeTimerTask();
         mTimerUpdate = new Timer();
-        int SENSOR_READ_RATE = 50;
+        int SENSOR_READ_RATE = 200;
         mTimerUpdate.scheduleAtFixedRate(mGaugeTimerTask, 0, SENSOR_READ_RATE);
     }
 
